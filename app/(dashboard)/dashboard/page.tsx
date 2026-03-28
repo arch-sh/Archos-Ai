@@ -73,14 +73,14 @@ export default function DashboardPage() {
   }, [documents]);
 
   return (
-    <div className="flex flex-col gap-8 max-w-[1400px] mx-auto">
+    <div className="flex flex-col gap-6 md:gap-8 max-w-[1400px] mx-auto">
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-primary"/>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
+            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-primary"/>
             Compliance Intelligence
           </h1>
 
@@ -95,26 +95,26 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <BarChart3 className="w-4 h-4"/>
-          {documents.length} documents analyzed
+          <span className="text-xs sm:text-sm">{documents.length} documents analyzed</span>
         </div>
 
       </div>
 
-      {/* KPI GRID */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {/* KPI GRID - Responsive grid */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 lg:grid-cols-3 xl:grid-cols-6">
 
         <KPICard
           title="Documents Processed"
           value={kpis.totalDocuments}
-          subtitle={`${kpis.compliantCount} compliant • ${kpis.nonCompliantCount} flagged`}
+          subtitle={`${kpis.compliantCount} compliant`}
           icon={FileText}
           accentColor="text-primary"
         />
 
         <KPICard
-          title="High Risk Documents"
+          title="High Risk"
           value={kpis.highRiskCount}
-          subtitle="Immediate attention required"
+          subtitle="Immediate attention"
           icon={AlertTriangle}
           accentColor="text-destructive"
         />
@@ -122,7 +122,7 @@ export default function DashboardPage() {
         <KPICard
           title="Medium Risk"
           value={kpis.mediumRiskCount}
-          subtitle="Potential compliance concerns"
+          subtitle="Review needed"
           icon={ShieldAlert}
           accentColor="text-amber-500"
         />
@@ -130,7 +130,7 @@ export default function DashboardPage() {
         <KPICard
           title="Low Risk"
           value={kpis.lowRiskCount}
-          subtitle="Within acceptable tolerance"
+          subtitle="Within tolerance"
           icon={ShieldCheck}
           accentColor="text-emerald-500"
         />
@@ -138,7 +138,7 @@ export default function DashboardPage() {
         <KPICard
           title="PII Exposure"
           value={kpis.piiDocuments}
-          subtitle="Sensitive data detected"
+          subtitle="Sensitive data"
           icon={ScanSearch}
           accentColor="text-destructive"
         />
@@ -146,7 +146,7 @@ export default function DashboardPage() {
         <KPICard
           title="AI Confidence"
           value={`${(kpis.avgConfidence * 100).toFixed(1)}%`}
-          subtitle="Average model certainty"
+          subtitle="Model certainty"
           icon={Activity}
           accentColor="text-primary"
         />
@@ -154,9 +154,9 @@ export default function DashboardPage() {
       </div>
 
       {/* CHARTS SECTION */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
 
-        <div className="bg-muted/30 rounded-xl border p-4">
+        <div className="bg-muted/30 rounded-xl border p-3 md:p-4">
           <RiskDistributionChart
             highRisk={kpis.highRiskCount}
             mediumRisk={kpis.mediumRiskCount}
@@ -164,14 +164,14 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="bg-muted/30 rounded-xl border p-4">
+        <div className="bg-muted/30 rounded-xl border p-3 md:p-4">
           <ComplianceStatusChart documents={documents} />
         </div>
 
       </div>
 
       {/* ACTIVITY FEED */}
-      <div className="bg-muted/20 border rounded-xl p-4">
+      <div className="bg-muted/20 border rounded-xl p-3 md:p-4">
         <RecentActivity documents={documents} />
       </div>
 
