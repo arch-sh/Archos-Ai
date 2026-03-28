@@ -7,6 +7,12 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
 import { hasMinimumRole } from "@/lib/auth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   FileText,
@@ -18,6 +24,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
+  Menu,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -81,14 +88,16 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-
-
-
-
-export function AppSidebar() {
+// Shared navigation content for both desktop and mobile
+function SidebarNav({ 
+  collapsed = false, 
+  onNavigate 
+}: { 
+  collapsed?: boolean;
+  onNavigate?: () => void;
+}) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
 
   const visibleItems =
     user
@@ -99,15 +108,10 @@ export function AppSidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside
-        className={cn(
-          "flex h-screen flex-col border-r border-border bg-sidebar transition-all duration-300",
-          collapsed ? "w-16" : "w-60"
-        )}
-      >
+      <div className="flex h-full flex-col">
         {/* Header */}
         <div className="flex h-14 items-center border-b border-sidebar-border px-3">
-          <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
+          <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden" onClick={onNavigate}>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
               <Shield className="h-4 w-4 text-primary" />
             </div>
@@ -134,10 +138,11 @@ export function AppSidebar() {
                     <TooltipTrigger asChild>
                       <Link
                         href={item.href}
+                        onClick={onNavigate}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                           isActive
-                            ? "bg-sidebar-accent text-primary"
+                            ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
                             : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                         )}
                       >
@@ -169,44 +174,103 @@ export function AppSidebar() {
             </div>
           )}
 
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  className="flex-1 justify-start gap-2 text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="h-4 w-4 shrink-0" />
-                  {!collapsed && <span className="text-xs">Sign Out</span>}
-                </Button>
-              </TooltipTrigger>
-              {collapsed && (
-                <TooltipContent side="right" className="bg-popover text-popover-foreground">
-                  Sign Out
-                </TooltipContent>
-              )}
-            </Tooltip>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCollapsed(!collapsed)}
-              className="h-8 w-8 shrink-0 text-sidebar-foreground/50 hover:text-sidebar-foreground"
-            >
-              {collapsed ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
-              )}
-              <span className="sr-only">
-                {collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              </span>
-            </Button>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  logout();
+                  onNavigate?.();
+                }}
+                className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+                {!collapsed && <span className="text-xs">Sign Out</span>}
+              </Button>
+            </TooltipTrigger>
+            {collapsed && (
+              <TooltipContent side="right" className="bg-popover text-popover-foreground">
+                Sign Out
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
-      </aside>
+      </div>
     </TooltipProvider>
+  );
+}
+
+// Mobile hamburger button - exposed for layout to use
+export function MobileMenuButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onClick}
+      className="md:hidden h-9 w-9"
+      aria-label="Open menu"
+    >
+      <Menu className="h-5 w-5" />
+    </Button>
+  );
+}
+
+// Mobile sheet sidebar
+export function MobileSidebar({ 
+  open, 
+  onOpenChange 
+}: { 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="left" className="w-72 p-0 bg-sidebar">
+        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+        <SidebarNav onNavigate={() => onOpenChange(false)} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// Desktop sidebar
+export function AppSidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Don't render desktop sidebar on mobile
+  if (isMobile) {
+    return null;
+  }
+
+  return (
+    <aside
+      className={cn(
+        "hidden md:flex h-screen flex-col border-r border-border bg-sidebar transition-all duration-300",
+        collapsed ? "w-16" : "w-60"
+      )}
+    >
+      <SidebarNav collapsed={collapsed} />
+      
+      {/* Collapse toggle */}
+      <div className="absolute bottom-4 right-0 translate-x-1/2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setCollapsed(!collapsed)}
+          className="h-6 w-6 rounded-full border-border bg-background shadow-md"
+        >
+          {collapsed ? (
+            <ChevronRight className="h-3 w-3" />
+          ) : (
+            <ChevronLeft className="h-3 w-3" />
+          )}
+          <span className="sr-only">
+            {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          </span>
+        </Button>
+      </div>
+    </aside>
   );
 }

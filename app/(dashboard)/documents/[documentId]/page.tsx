@@ -324,87 +324,83 @@ export default function DocumentDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
 
       {/* Header */}
-      <Card>
-        <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-6">
+      <Card className="glass-card">
+        <CardContent className="flex flex-col gap-4 p-4 md:p-6">
 
-          <div className="flex flex-col gap-2">
-
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              Document Identifier
-            </div>
-
-            <div className="flex items-center gap-3 flex-wrap">
-
-              <div className="px-4 py-2 bg-muted rounded-md text-sm font-medium">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                Document Identifier
+              </div>
+              <div className="px-3 py-2 bg-muted rounded-lg text-sm font-medium font-mono truncate max-w-full">
                 {fileMeta?.filename || decision.document_id}
               </div>
+            </div>
 
-              <button
-                onClick={() =>
-                  navigator.clipboard.writeText(decision.document_id)
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                className={
+                  riskLevel === "CRITICAL" || riskLevel === "HIGH"
+                    ? "bg-red-100 text-red-700 border border-red-300"
+                    : riskLevel === "MEDIUM"
+                    ? "bg-amber-100 text-amber-700 border border-amber-300"
+                    : "bg-emerald-100 text-emerald-700 border border-emerald-300"
                 }
-                className="text-xs text-primary hover:underline"
               >
-                Copy ID
-              </button>
-
-              <button
-                onClick={handlePreview}
-                className="text-xs bg-primary text-white px-3 py-1 rounded-md hover:opacity-90"
-                disabled={loadingPreview}
+                {decision.risk_level}
+              </Badge>
+              <Badge
+                className={
+                  String(decision.status) === "COMPLIANT"
+                    ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
+                    : String(decision.status) === "REVIEW_REQUIRED"
+                    ? "bg-amber-100 text-amber-700 border border-amber-300"
+                    : "bg-red-100 text-red-700 border border-red-300"
+                }
               >
-                {loadingPreview ? "Loading..." : "View Document"}
-              </button>
-              <button
-                onClick={handleDownloadReport}
-                className="text-xs bg-emerald-600 text-white px-3 py-1 rounded-md hover:opacity-90"
-              >
-                Download Report
-              </button>
-
+                {decision.status}
+              </Badge>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Badge
-              className={
-                riskLevel === "CRITICAL" || riskLevel === "HIGH"
-                  ? "bg-red-100 text-red-700 border border-red-300"
-                  : riskLevel === "MEDIUM"
-                  ? "bg-amber-100 text-amber-700 border border-amber-300"
-                  : "bg-emerald-100 text-emerald-700 border border-emerald-300"
-              }
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+            <button
+              onClick={() => navigator.clipboard.writeText(decision.document_id)}
+              className="text-xs text-primary hover:underline"
             >
-              {decision.risk_level}
-            </Badge>
-            <Badge
-              className={
-                String(decision.status) === "COMPLIANT"
-                  ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
-                  : String(decision.status) === "REVIEW_REQUIRED"
-                  ? "bg-amber-100 text-amber-700 border border-amber-300"
-                  : "bg-red-100 text-red-700 border border-red-300"
-              }
+              Copy ID
+            </button>
+
+            <button
+              onClick={handlePreview}
+              className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
+              disabled={loadingPreview}
             >
-              {decision.status}
-            </Badge>
+              {loadingPreview ? "Loading..." : "View Document"}
+            </button>
+            <button
+              onClick={handleDownloadReport}
+              className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Download Report
+            </button>
           </div>
         </CardContent>
       </Card>
 
       {/* Document Intelligence */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <FileText className="w-5 h-5 text-primary" />
+      <Card className="glass-card">
+        <CardHeader className="px-4 md:px-6">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <FileText className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             Document Intelligence
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-3 gap-6">
-          <div>
+        <CardContent className="px-4 md:px-6 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+          <div className="bg-muted/40 rounded-lg p-3">
             <div className="text-xs uppercase text-muted-foreground mb-1">
               Document Type
             </div>
@@ -412,13 +408,13 @@ export default function DocumentDetailPage() {
               {decision.document_type || "Unknown"}
             </div>
           </div>
-          <div>
+          <div className="bg-muted/40 rounded-lg p-3">
             <div className="text-xs uppercase text-muted-foreground mb-1">
               Risk Level
             </div>
             <div className="text-sm font-medium">{decision.risk_level}</div>
           </div>
-          <div>
+          <div className="bg-muted/40 rounded-lg p-3">
             <div className="text-xs uppercase text-muted-foreground mb-1">
               Compliance Status
             </div>
@@ -428,15 +424,15 @@ export default function DocumentDetailPage() {
       </Card>
 
       {/* Compliance Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Activity className="w-5 h-5 text-primary" />
+      <Card className="glass-card">
+        <CardHeader className="px-4 md:px-6">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <Activity className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             Compliance Analytics
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="grid grid-cols-3 gap-4 mb-4">
+        <CardContent className="px-4 md:px-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-muted/40 border rounded-lg p-3">
               <div className="text-xs text-muted-foreground">Risk Level</div>
               <div className="font-semibold text-sm">{decision.risk_level}</div>
@@ -451,17 +447,17 @@ export default function DocumentDetailPage() {
             </div>
           </div>
           <div>
-            <div className="text-sm text-muted-foreground mb-1">
-              Model Confidence
+            <div className="text-sm text-muted-foreground mb-2">
+              Confidence Score
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+              <div className="flex-1 bg-muted rounded-full h-2.5 overflow-hidden">
                 <div
                   className={`h-full ${confidenceColor} transition-all`}
                   style={{ width: `${confidencePercent}%` }}
                 />
               </div>
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium min-w-[3rem] text-right">
                 {confidencePercent}%
               </span>
             </div>
@@ -548,31 +544,31 @@ export default function DocumentDetailPage() {
       )}
 
       {/* AI Compliance Assistant */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Brain className="w-5 h-5 text-primary" />
+      <Card className="glass-card">
+        <CardHeader className="px-4 md:px-6">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <Brain className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             AI Compliance Assistant
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="px-4 md:px-6 space-y-4">
 
           <div className="text-sm text-muted-foreground">
-            Ask questions about this document's compliance analysis.
+            Ask questions about this document&apos;s compliance analysis.
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               placeholder="Example: Does this document contain personal data?"
               value={assistantQuestion}
               onChange={(e) => setAssistantQuestion(e.target.value)}
-              className="flex-1 border rounded-md px-3 py-2 text-sm bg-background"
+              className="flex-1 border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
             />
 
             <button
               onClick={askAssistant}
-              className="bg-primary text-white px-4 py-2 rounded-md text-sm"
+              className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
               disabled={assistantLoading}
             >
               {assistantLoading ? "Thinking..." : "Ask"}
@@ -580,7 +576,7 @@ export default function DocumentDetailPage() {
           </div>
 
           {assistantAnswer && (
-            <div className="border rounded-md p-3 bg-muted/40 text-sm leading-relaxed">
+            <div className="border border-border rounded-lg p-4 bg-muted/40 text-sm leading-relaxed">
               {assistantAnswer}
             </div>
           )}
@@ -823,32 +819,32 @@ export default function DocumentDetailPage() {
 
       {/* Document Preview Modal */}
       {previewOpen && signedUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
 
-          <div className="bg-white w-[90%] h-[90%] rounded-lg shadow-lg flex flex-col">
+          <div className="bg-background w-full max-w-5xl h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden border border-border">
 
-            <div className="flex justify-between items-center px-4 py-3 border-b">
+            <div className="flex justify-between items-center px-4 py-3 border-b border-border bg-muted/50">
 
-              <div className="font-medium">
+              <div className="font-medium text-sm truncate">
                 {fileMeta?.filename || "Document Preview"}
               </div>
 
               <button
                 onClick={() => setPreviewOpen(false)}
-                className="text-sm text-muted-foreground hover:text-black"
+                className="text-sm text-muted-foreground hover:text-foreground px-3 py-1 rounded-lg hover:bg-muted transition-colors"
               >
                 Close
               </button>
 
             </div>
 
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto bg-muted/20">
 
               {fileMeta?.content_type?.includes("image") && (
                 <img
                   src={signedUrl}
                   alt="Document"
-                  className="max-w-full max-h-full mx-auto"
+                  className="max-w-full max-h-full mx-auto p-4"
                 />
               )}
 

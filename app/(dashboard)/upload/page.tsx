@@ -1,6 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { Upload, FileText, Search, Brain, CheckCircle, Loader2, AlertCircle } from "lucide-react"
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null)
@@ -26,9 +30,6 @@ export default function UploadPage() {
     setStatus("Uploading document to processing pipeline...")
 
     try {
-      // ----------------------------------------
-      // Attach user identity from JWT
-      // ----------------------------------------
       const token = localStorage.getItem("access_token")
 
       let userHeaders: Record<string, string> = {}
@@ -57,7 +58,6 @@ export default function UploadPage() {
         credentials: "omit",
       })
 
-      // If backend accepted the upload
       if (res.status === 202 || res.ok) {
         let data: any = null
 
@@ -148,119 +148,162 @@ export default function UploadPage() {
     return () => clearInterval(interval)
   }, [documentId])
 
+  const pipelineSteps = [
+    { 
+      key: "upload", 
+      label: "Upload", 
+      icon: FileText,
+      active: pipelineStage !== "IDLE" 
+    },
+    { 
+      key: "ocr", 
+      label: "OCR", 
+      icon: Search,
+      active: pipelineStage === "OCR_RUNNING" || pipelineStage === "ANALYZING" || pipelineStage === "COMPLETED" 
+    },
+    { 
+      key: "analysis", 
+      label: "AI Analysis", 
+      icon: Brain,
+      active: pipelineStage === "ANALYZING" || pipelineStage === "COMPLETED" 
+    },
+    { 
+      key: "complete", 
+      label: "Complete", 
+      icon: CheckCircle,
+      active: pipelineStage === "COMPLETED" 
+    },
+  ]
+
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl mx-auto space-y-6 md:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">📤 AI Compliance Document Upload</h1>
-        <p className="text-muted-foreground mt-2">
-          Upload documents to automatically run 🔍 OCR extraction, 🧠 AI compliance
-          analysis, and ⚖️ risk evaluation through the intelligent pipeline.
+        <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+          <Upload className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+          Document Upload
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Upload documents to run OCR extraction, AI compliance analysis, and risk evaluation.
         </p>
       </div>
 
       {/* Upload Card */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 p-6 space-y-4 bg-background/80 backdrop-blur shadow-lg">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
-            Select Document
-          </label>
+      <Card className="glass-card">
+        <CardHeader className="pb-3 px-4 md:px-6">
+          <CardTitle className="text-base">Select Document</CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 md:px-6 space-y-4">
+          <div className="space-y-2">
+            <div className="relative">
+              <input
+                type="file"
+                id="file-upload"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                accept=".pdf,.jpg,.jpeg,.png"
+              />
+              <div className={cn(
+                "border-2 border-dashed rounded-xl p-6 md:p-8 text-center transition-colors",
+                file ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/50"
+              )}>
+                {file ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <FileText className="h-10 w-10 text-primary" />
+                    <p className="text-sm font-medium truncate max-w-full">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(file.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="h-10 w-10 text-muted-foreground" />
+                    <p className="text-sm font-medium">Drop a file or click to browse</p>
+                    <p className="text-xs text-muted-foreground">
+                      Supported: PDF, JPG, PNG
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-          <input
-            type="file"
-            className="border rounded-md p-2 w-full"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-          />
-
-          <p className="text-xs text-muted-foreground">
-            Supported: PDF, JPG, PNG. The system will automatically extract
-            text and run compliance analysis.
-          </p>
-        </div>
-
-        <button
-          onClick={handleUpload}
-          disabled={loading}
-          className="bg-primary text-white px-6 py-2.5 rounded-lg font-medium shadow hover:shadow-md hover:scale-[1.02] transition-all disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {loading ? "⏳ Processing..." : "🚀 Upload & Analyze"}
-        </button>
-      </div>
+          <Button
+            onClick={handleUpload}
+            disabled={loading || !file}
+            className="w-full"
+            size="lg"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload and Analyze
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Pipeline Visualization */}
-      <div className="relative overflow-hidden rounded-2xl border border-border/60 p-6 space-y-4 bg-background/80 backdrop-blur shadow-lg">
-        <h2 className="font-semibold text-lg">⚙️ Processing Pipeline</h2>
-
-        <div className="grid grid-cols-4 gap-4 text-center text-sm">
-
-          {/* Upload */}
-          <div
-            className={`p-4 border border-border/60 rounded-xl transition-all shadow-sm font-medium
-            ${
-              pipelineStage !== "IDLE"
-                ? "bg-green-700 text-white border-green-700"
-                : "bg-muted"
-            }`}
-          >
-            📄
-            <div>Upload</div>
+      <Card className="glass-card">
+        <CardHeader className="pb-3 px-4 md:px-6">
+          <CardTitle className="text-base">Processing Pipeline</CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 md:px-6 space-y-4">
+          {/* Pipeline steps */}
+          <div className="grid grid-cols-4 gap-2 md:gap-4">
+            {pipelineSteps.map((step, index) => {
+              const Icon = step.icon
+              return (
+                <div
+                  key={step.key}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-3 md:p-4 border rounded-xl transition-all text-center",
+                    step.active
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-600/20"
+                      : "bg-muted/50 border-border text-muted-foreground"
+                  )}
+                >
+                  <Icon className="h-5 w-5 md:h-6 md:w-6" />
+                  <span className="text-[10px] md:text-xs font-medium">{step.label}</span>
+                </div>
+              )
+            })}
           </div>
 
-          {/* OCR */}
-          <div
-            className={`p-4 border border-border/60 rounded-xl transition-all shadow-sm font-medium
-            ${
-              pipelineStage === "OCR_RUNNING" ||
-              pipelineStage === "ANALYZING" ||
-              pipelineStage === "COMPLETED"
-                ? "bg-green-700 text-white border-green-700"
-                : "bg-muted"
-            }`}
-          >
-            🔍
-            <div>OCR</div>
-          </div>
-
-          {/* AI Analysis */}
-          <div
-            className={`p-4 border border-border/60 rounded-xl transition-all shadow-sm font-medium
-            ${
-              pipelineStage === "ANALYZING" ||
-              pipelineStage === "COMPLETED"
-                ? "bg-green-700 text-white border-green-700"
-                : "bg-muted"
-            }`}
-          >
-            🧠
-            <div>AI Analysis</div>
-          </div>
-
-          {/* Compliance */}
-          <div
-            className={`p-4 border border-border/60 rounded-xl transition-all shadow-sm font-medium
-            ${
-              pipelineStage === "COMPLETED"
-                ? "bg-green-700 text-white border-green-700"
-                : "bg-muted"
-            }`}
-          >
-            ✅
-            <div>Compliance Result</div>
-          </div>
-
-        </div>
-
-        <p className="text-xs text-muted-foreground">
-          After upload, your document moves through the automated compliance pipeline ⚙️.
-          Results will appear in the 📊 Documents dashboard once processing completes.
-        </p>
-      </div>
+          <p className="text-xs text-muted-foreground text-center">
+            After upload, your document moves through the automated compliance pipeline.
+            Results will appear in the Documents dashboard once processing completes.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Status */}
       {status && (
-        <div className="border rounded-md p-4 text-sm bg-muted flex items-center gap-2">
-          {status}
-        </div>
+        <Card className={cn(
+          "border",
+          status.includes("error") || status.includes("could not")
+            ? "border-destructive/50 bg-destructive/5"
+            : status.includes("completed") || status.includes("successfully")
+            ? "border-emerald-500/50 bg-emerald-500/5"
+            : "border-primary/50 bg-primary/5"
+        )}>
+          <CardContent className="p-4 flex items-start gap-3">
+            {status.includes("error") || status.includes("could not") ? (
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            ) : status.includes("completed") || status.includes("successfully") ? (
+              <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <Loader2 className="h-5 w-5 text-primary animate-spin shrink-0 mt-0.5" />
+            )}
+            <p className="text-sm">{status}</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   )
